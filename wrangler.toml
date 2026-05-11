@@ -1,0 +1,15 @@
+name = "metaoauth"
+main = "src/index.ts"
+compatibility_date = "2025-05-11"
+
+[assets]
+directory = "public"
+binding = "ASSETS"
+
+# Optional: persist OAuth tokens + webhook markers across requests
+# [[kv_namespaces]]
+# binding = "META_KV"
+# id = "<your-kv-namespace-id>"
+
+[vars]
+META_GRAPH_API_VERSION = "v21.0"

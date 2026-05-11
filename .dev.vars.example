@@ -1,0 +1,14 @@
+# Copy to .dev.vars for local dev (never commit .dev.vars)
+META_APP_ID=
+META_APP_SECRET=
+# Must match Meta app Valid OAuth Redirect URIs exactly, e.g. http://127.0.0.1:8787/api/auth/meta/callback
+META_REDIRECT_URI=http://127.0.0.1:8787/api/auth/meta/callback
+META_WEBHOOK_VERIFY_TOKEN=choose-a-long-random-string
+# Used to sign session cookies (min 32 random bytes)
+SESSION_SECRET=
+
+# Optional: override Graph version (defaults to wrangler.toml META_GRAPH_API_VERSION)
+# META_GRAPH_API_VERSION=v21.0
+
+# Optional: comma-separated OAuth scopes
+# META_OAUTH_SCOPES=pages_show_list,pages_read_engagement,instagram_basic,instagram_manage_insights

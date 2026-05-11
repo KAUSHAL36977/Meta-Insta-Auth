@@ -1,0 +1,6 @@
+{
+  "publicBaseUrl": "https://your-tunnel-or-worker-host",
+  "metaAppId": "",
+  "instagramAppId": "",
+  "webhookVerifyToken": ""
+}

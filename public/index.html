@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Meta OAuth Lab</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="lab-app">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-title">Meta OAuth Lab</div>
+          <div class="brand-sub">Webhooks · IG Graph · Reels</div>
+        </div>
+        <nav class="nav">
+          <button type="button" class="nav-item" data-route="dashboard">
+            <span class="nav-dot" id="dot-dashboard" data-state="pending"></span>
+            Dashboard
+          </button>
+          <button type="button" class="nav-item" data-route="setup">
+            <span class="nav-dot" id="dot-setup" data-state="pending"></span>
+            Setup
+          </button>
+          <button type="button" class="nav-item" data-route="instagram">
+            <span class="nav-dot" id="dot-instagram" data-state="pending"></span>
+            Instagram login
+          </button>
+          <button type="button" class="nav-item" data-route="webhooks">
+            <span class="nav-dot" id="dot-webhooks" data-state="pending"></span>
+            Webhooks
+          </button>
+          <button type="button" class="nav-item" data-route="reels">
+            <span class="nav-dot" id="dot-reels" data-state="pending"></span>
+            Reel insights
+          </button>
+          <button type="button" class="nav-item" data-route="graph">
+            <span class="nav-dot" id="dot-graph" data-state="pending"></span>
+            Graph playground
+          </button>
+        </nav>
+      </aside>
+
+      <div class="main-wrap">
+        <main class="main">
+          <section class="view hidden" id="view-dashboard">
+            <h1 class="page-title">Dashboard</h1>
+            <p class="lead">Quick status for Meta OAuth, webhooks, and reel insights testing.</p>
+            <div class="dash-grid">
+              <div class="dash-card">
+                <h3>Setup</h3>
+                <p id="dashSetupSummary" class="muted">Loading…</p>
+                <button type="button" class="btn btn-outline btn-sm" data-route="setup">Open Setup</button>
+              </div>
+              <div class="dash-card">
+                <h3>Instagram</h3>
+                <p id="dashIgSummary" class="muted">Loading…</p>
+                <button type="button" class="btn btn-outline btn-sm" data-route="instagram">Open login</button>
+              </div>
+              <div class="dash-card">
+                <h3>Webhooks</h3>
+                <p id="dashWhSummary" class="muted">KV optional for last-event marker.</p>
+                <button type="button" class="btn btn-outline btn-sm" data-route="webhooks">Open Webhooks</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="view hidden" id="view-setup">
+            <h1 class="page-title">Setup</h1>
+            <p class="lead">
+              Paste values from the Meta Developer App dashboard. For <strong>Option A</strong> (local + tunnel), run
+              <code>npm run dev</code> then <code>npm run tunnel</code> — the tunnel updates <code>publicBaseUrl</code> in
+              <code>public/data/config.json</code> and <code>data/config.json</code>. Use the copied URLs in Meta (not Vercel).
+            </p>
+            <p class="hint-block">
+              Public base: no trailing slash. Leave App Secret empty to keep the previously saved secret (KV) or previous local value.
+            </p>
+
+            <div class="banner banner-error hidden" id="setupBannerError"></div>
+            <div class="banner banner-success hidden" id="setupBannerOk"></div>
+
+            <form class="setup-form card" id="setupForm">
+              <label class="label">Meta app ID (App settings → Basic)</label>
+              <input name="metaAppId" id="fMetaAppId" type="text" autocomplete="off" placeholder="e.g. 2848248568848320" />
+
+              <label class="label">Instagram app ID (optional — Instagram product dashboard)</label>
+              <input name="instagramAppId" id="fInstagramAppId" type="text" autocomplete="off" placeholder="Same as Basic App ID if Meta shows one ID only" />
+
+              <label class="label">Instagram app secret (optional)</label>
+              <input name="instagramAppSecret" id="fInstagramAppSecret" type="password" autocomplete="off" placeholder="Uses Meta app secret if empty" />
+
+              <label class="label">App Secret</label>
+              <input name="metaAppSecret" id="fMetaAppSecret" type="password" autocomplete="off" placeholder="Leave blank to keep existing" />
+
+              <label class="label">Webhook verify token</label>
+              <input name="webhookVerifyToken" id="fWebhookVerify" type="text" autocomplete="off" placeholder="MetaWebhookVerify-…" />
+
+              <label class="label">Public base URL</label>
+              <input name="publicBaseUrl" id="fPublicBase" type="url" autocomplete="off" placeholder="https://your-host (no trailing slash)" />
+
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <button type="button" class="btn btn-outline" id="btnReloadConfigFiles">Reload from /data/config.json</button>
+              </div>
+              <p class="hint" id="setupKvHint"></p>
+            </form>
+          </section>
+
+          <section class="view hidden" id="view-instagram">
+            <h1 class="page-title">Instagram login</h1>
+            <p class="lead">Connect a professional Instagram account linked to a Facebook Page.</p>
+            <div class="banner banner-success hidden" id="bannerConnected">Instagram connected.</div>
+            <div class="banner banner-error hidden" id="bannerError"></div>
+            <div class="card row-between">
+              <div id="accountMeta" class="hidden">
+                <div class="handle" id="handleDisplay"></div>
+                <div class="badge" id="accountTypeDisplay"></div>
+              </div>
+              <div class="actions">
+                <button type="button" class="btn btn-primary hidden" id="btnConnect">Connect Instagram</button>
+                <button type="button" class="btn btn-outline hidden" id="btnSwitch">Switch account</button>
+                <button type="button" class="btn btn-outline hidden" id="btnDisconnect">Disconnect</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="view hidden" id="view-webhooks">
+            <h1 class="page-title">Webhooks</h1>
+            <p class="lead">Meta sends HTTPS POSTs to your Worker. Verification uses <code>GET /api/webhook/meta</code> with <code>hub.*</code> query params.</p>
+            <div class="card">
+              <label class="label">Callback URL (paste in Meta)</label>
+              <div class="copy-row">
+                <code id="whCallback" class="code-block"></code>
+                <button type="button" class="btn btn-outline btn-sm" id="btnCopyCallback">Copy</button>
+              </div>
+              <label class="label">Verify token</label>
+              <p class="muted" id="whVerifyHint">Set in Setup or <code>META_WEBHOOK_VERIFY_TOKEN</code> secret.</p>
+            </div>
+            <p class="webhook-hint hidden" id="webhookHint"></p>
+          </section>
+
+          <section class="view hidden" id="view-reels">
+            <h1 class="page-title">Reel insights</h1>
+            <p class="lead">Paste an Instagram Reel link from your connected account to see its engagement.</p>
+            <div class="banner banner-error hidden" id="reelsBannerError"></div>
+            <section class="card input-card">
+              <label class="label" for="reelUrl">Reel URL</label>
+              <div class="input-row">
+                <input id="reelUrl" type="url" placeholder="https://www.instagram.com/reel/..." autocomplete="off" />
+                <button type="button" class="btn btn-primary" id="btnFetch">Fetch metrics</button>
+              </div>
+              <p class="hint">The reel must belong to the connected Instagram Business / Creator account.</p>
+            </section>
+            <section class="card preview-card hidden" id="previewCard">
+              <div class="preview-layout">
+                <div class="thumb" id="thumbWrap">
+                  <img id="thumbImg" alt="" class="hidden" />
+                  <span class="thumb-placeholder" id="thumbPlaceholder">No thumbnail</span>
+                </div>
+                <div class="preview-body">
+                  <div class="pill" id="mediaTypePill">REELS</div>
+                  <div class="permalink" id="previewPermalink"></div>
+                  <p class="caption" id="previewCaption"></p>
+                  <div class="posted" id="previewPosted"></div>
+                </div>
+              </div>
+            </section>
+            <section class="metrics hidden" id="metricsSection">
+              <div class="metric-card"><span class="metric-label">Likes</span><span class="metric-value" id="mLikes">—</span></div>
+              <div class="metric-card"><span class="metric-label">Comments</span><span class="metric-value" id="mComments">—</span></div>
+              <div class="metric-card"><span class="metric-label">Views</span><span class="metric-value" id="mViews">—</span></div>
+              <div class="metric-card"><span class="metric-label">Reach</span><span class="metric-value" id="mReach">—</span></div>
+              <div class="metric-card"><span class="metric-label">Saves</span><span class="metric-value" id="mSaves">—</span></div>
+              <div class="metric-card"><span class="metric-label">Shares</span><span class="metric-value" id="mShares">—</span></div>
+              <div class="metric-card"><span class="metric-label">Total interactions</span><span class="metric-value" id="mTotal">—</span></div>
+              <div class="metric-card"><span class="metric-label">Avg watch time (ms)</span><span class="metric-value" id="mAvgWatch">—</span></div>
+              <div class="metric-card"><span class="metric-label">Total watch time (ms)</span><span class="metric-value" id="mTotalWatch">—</span></div>
+            </section>
+          </section>
+
+          <section class="view hidden" id="view-graph">
+            <h1 class="page-title">Graph playground</h1>
+            <p class="lead">GET requests only. The access token is appended server-side. Requires Instagram login.</p>
+            <div class="card">
+              <label class="label" for="graphPath">Graph path (after graph version)</label>
+              <div class="input-row">
+                <input id="graphPath" type="text" placeholder="/me/accounts" autocomplete="off" />
+                <button type="button" class="btn btn-primary" id="btnGraphRun">Run GET</button>
+              </div>
+              <label class="label">Response</label>
+              <pre class="code-pre" id="graphOut">{}</pre>
+            </div>
+          </section>
+
+          <footer class="footer">
+            Meta OAuth Lab · Instagram Graph API <span id="graphVersionFooter">v21.0</span>
+          </footer>
+        </main>
+      </div>
+    </div>
+    <script src="/app.js" defer></script>
+  </body>
+</html>
